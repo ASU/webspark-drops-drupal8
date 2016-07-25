@@ -1,0 +1,17 @@
+name: 'Panopoly Pages'
+description: 'Provides a basic page, suitable for Panelizing.'
+type: module
+core: 8.x
+dependencies:
+  - field
+  - image
+  - menu_ui
+  - node
+  - panelizer
+  - panopoly_core
+  - panopoly_images
+  - panopoly_theme
+  - path
+  - text
+  - user
+package: Panopoly

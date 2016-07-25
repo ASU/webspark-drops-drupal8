@@ -1,0 +1,13 @@
+type: module
+name: Radix Layouts
+description: Responsive layouts built on the Bootstrap 3 grid system.
+package: Layout
+# core: 8.x
+dependencies:
+  - layout_plugin
+
+# Information added by Drupal.org packaging script on 2015-06-09
+version: '8.x-3.0-rc1'
+core: '8.x'
+project: 'radix_layouts'
+datestamp: 1433868494
