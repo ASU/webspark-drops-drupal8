@@ -1,0 +1,12 @@
+language: node_js
+node_js:
+  - "6.3.1"
+  - "6"
+  - "6.1"
+  - "5.11"
+  - "0.6"
+
+before_script:
+  - npm install -g gulp
+
+script: gulp Gulpfile.js
