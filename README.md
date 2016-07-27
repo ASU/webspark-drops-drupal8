@@ -1,6 +1,6 @@
 # Webspark 8
 
-[![Build Status](https://travis-ci.org/jrounsav/webspark-drops-8.svg?branch=master)(https://travis-ci.org/jrounsav/webspark-drops-8)]
+![Build Status](https://travis-ci.org/jrounsav/webspark-drops-8.svg?branch=master)
 
 CONTENTS OF THIS FILE
 ---------------------
