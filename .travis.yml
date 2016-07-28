@@ -5,5 +5,7 @@ node_js:
 before_script:
   - npm install -g gulp
   - npm install gulp
+  - npm install node-sass
+  - npm install --save-dev kss
 
 script: gulp
