@@ -7,7 +7,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
 /**
  * Drupal 7 blocked IPs from database.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d7_blocked_ips",
  *   source_provider = "system"
  * )

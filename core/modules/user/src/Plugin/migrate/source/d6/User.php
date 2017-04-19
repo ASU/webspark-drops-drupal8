@@ -8,7 +8,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
 /**
  * Drupal 6 user source from database.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d6_user"
  * )
  */
@@ -20,7 +20,7 @@ class User extends DrupalSqlBase {
   public function query() {
     return $this->select('users', 'u')
       ->fields('u', array_keys($this->baseFields()))
-      ->condition('uid', 0, '>');
+      ->condition('u.uid', 0, '>');
   }
 
   /**
@@ -100,6 +100,7 @@ class User extends DrupalSqlBase {
       'name' => $this->t('Username'),
       'pass' => $this->t('Password'),
       'mail' => $this->t('Email address'),
+      'theme' => $this->t('Theme'),
       'signature' => $this->t('Signature'),
       'signature_format' => $this->t('Signature format'),
       'created' => $this->t('Registered timestamp'),

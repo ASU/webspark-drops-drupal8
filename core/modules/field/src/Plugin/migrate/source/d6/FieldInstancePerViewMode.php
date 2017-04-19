@@ -7,7 +7,7 @@ use Drupal\node\Plugin\migrate\source\d6\ViewModeBase;
 /**
  * The field instance per view mode source class.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d6_field_instance_per_view_mode",
  *   source_provider = "content"
  * )
@@ -59,13 +59,13 @@ class FieldInstancePerViewMode extends ViewModeBase {
         'label',
         'display_settings',
         'widget_settings',
-    ))
-    ->fields('cnf', array(
+      ))
+      ->fields('cnf', array(
         'type',
         'module',
-    ));
+      ));
     $query->join('content_node_field', 'cnf', 'cnfi.field_name = cnf.field_name');
-    $query->orderBy('weight');
+    $query->orderBy('cnfi.weight');
 
     return $query;
   }

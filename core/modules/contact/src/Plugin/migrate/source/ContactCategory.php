@@ -8,7 +8,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
 /**
  * Contact category source from database.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "contact_category",
  *   source_provider = "contact"
  * )
@@ -29,7 +29,7 @@ class ContactCategory extends DrupalSqlBase {
         'selected',
       )
     );
-    $query->orderBy('cid');
+    $query->orderBy('c.cid');
     return $query;
   }
 

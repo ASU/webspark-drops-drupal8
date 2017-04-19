@@ -10,7 +10,7 @@ use Drupal\migrate\Plugin\migrate\source\DummyQueryTrait;
  *
  * @todo Support default picture?
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "user_picture_instance"
  * )
  */

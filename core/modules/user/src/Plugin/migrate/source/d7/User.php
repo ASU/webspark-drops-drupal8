@@ -8,7 +8,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\d7\FieldableEntity;
 /**
  * Drupal 7 user source from database.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d7_user"
  * )
  */
@@ -20,7 +20,7 @@ class User extends FieldableEntity {
   public function query() {
     return $this->select('users', 'u')
       ->fields('u')
-      ->condition('uid', 0, '>');
+      ->condition('u.uid', 0, '>');
   }
 
   /**

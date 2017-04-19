@@ -60,6 +60,7 @@ class OptimizedPhpArrayDumper extends Dumper {
    */
   public function getArray() {
     $definition = array();
+    $this->aliases = $this->getAliases();
     $definition['aliases'] = $this->getAliases();
     $definition['parameters'] = $this->getParameters();
     $definition['services'] = $this->getServiceDefinitions();
@@ -439,7 +440,7 @@ class OptimizedPhpArrayDumper extends Dumper {
    *
    * @param string $id
    *   The ID of the service to get a reference for.
-   * @param \Symfony\Component\DependencyInjection\Reference|NULL $reference
+   * @param \Symfony\Component\DependencyInjection\Reference|null $reference
    *   (optional) The reference object to process; needed to get the invalid
    *   behavior value.
    *
@@ -454,6 +455,9 @@ class OptimizedPhpArrayDumper extends Dumper {
     }
 
     // Private shared service.
+    if (isset($this->aliases[$id])) {
+      $id = $this->aliases[$id];
+    }
     $definition = $this->container->getDefinition($id);
     if (!$definition->isPublic()) {
       // The ContainerBuilder does not share a private service, but this means a

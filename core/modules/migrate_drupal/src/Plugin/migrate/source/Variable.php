@@ -12,7 +12,7 @@ use Drupal\migrate\Plugin\MigrationInterface;
  * This source class always returns a single row and as such is not a good
  * example for any normal source class returning multiple rows.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "variable"
  * )
  */

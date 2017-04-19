@@ -9,7 +9,7 @@ use Drupal\migrate\Row;
 /**
  * Drupal menu link source from database.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "menu_link",
  * )
  */

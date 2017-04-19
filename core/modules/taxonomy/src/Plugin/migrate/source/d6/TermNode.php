@@ -8,7 +8,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
 /**
  * Source returning tids from the term_node table for the current revision.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d6_term_node",
  *   source_provider = "taxonomy"
  * )

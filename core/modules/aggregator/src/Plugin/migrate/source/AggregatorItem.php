@@ -7,7 +7,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
 /**
  * Drupal aggregator item source from database.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "aggregator_item",
  *   source_provider = "aggregator"
  * )
@@ -20,7 +20,7 @@ class AggregatorItem extends DrupalSqlBase {
   public function query() {
     return $this->select('aggregator_item', 'ai')
       ->fields('ai')
-      ->orderBy('iid');
+      ->orderBy('ai.iid');
   }
 
   /**

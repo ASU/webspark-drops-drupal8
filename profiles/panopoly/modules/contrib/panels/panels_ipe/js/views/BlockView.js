@@ -15,8 +15,8 @@
      * @type {function}
      */
     template_actions: _.template(
-      '<div class="ipe-actions-block ipe-actions" data-block-action-id="<%- uuid %>">' +
-      '  <h5>Block: <%- label %></h5>' +
+      '<div class="ipe-actions-block ipe-actions" data-block-action-id="<%- uuid %>" data-block-edit-id="<%- id %>">' +
+      '  <h5>' + Drupal.t('Block: <%- label %>') + '</h5>' +
       '  <ul class="ipe-action-list">' +
       '    <li data-action-id="remove">' +
       '      <a><span class="ipe-icon ipe-icon-remove"></span></a>' +
@@ -28,11 +28,16 @@
       '      <a><span class="ipe-icon ipe-icon-down"></span></a>' +
       '    </li>' +
       '    <li data-action-id="move">' +
-      '      <select><option>Move</option></select>' +
+      '      <select><option>' + Drupal.t('Move') + '</option></select>' +
       '    </li>' +
       '    <li data-action-id="configure">' +
       '      <a><span class="ipe-icon ipe-icon-configure"></span></a>' +
       '    </li>' +
+      '<% if (plugin_id === "block_content" && edit_access) { %>' +
+      '    <li data-action-id="edit-content-block">' +
+      '      <a><span class="ipe-icon ipe-icon-edit"></span></a>' +
+      '    </li>' +
+      '<% } %>' +
       '  </ul>' +
       '</div>'
     ),
@@ -61,8 +66,8 @@
       if (options.el && !this.model.get('html')) {
         this.model.set({html: this.$el.prop('outerHTML')});
       }
-      this.listenTo(this.model, 'reset', this.render);
-      this.listenTo(this.model, 'change:active', this.render);
+      this.listenTo(this.model, 'sync', this.finishedSync);
+      this.listenTo(this.model, 'change:syncing', this.render);
     },
 
     /**
@@ -76,13 +81,12 @@
       this.$el.replaceWith(this.model.get('html'));
       this.setElement("[data-block-id='" + this.model.get('uuid') + "']");
 
-      // Attach any Drupal behaviors.
-      Drupal.attachBehaviors(this.el);
-
       // We modify our content if the IPE is active.
       if (this.model.get('active')) {
         // Prepend the ipe-actions header.
-        this.$el.prepend(this.template_actions(this.model.toJSON()));
+        var template_vars = this.model.toJSON();
+        template_vars['edit_access'] = drupalSettings.panels_ipe.user_permission.create_content;
+        this.$el.prepend(this.template_actions(template_vars));
 
         // Add an active class.
         this.$el.addClass('active');
@@ -111,7 +115,41 @@
         });
       }
 
+      // Add a special class if we're currently syncing HTML from the server.
+      if (this.model.get('syncing')) {
+        this.$el.addClass('syncing');
+      }
+
       return this;
+    },
+
+    /**
+     * Overrides the default remove function to make a copy of our current HTML
+     * into the Model for future rendering. This is required as modules like
+     * Quickedit modify Block HTML without our knowledge.
+     *
+     * @return {Drupal.panels_ipe.BlockView}
+     *   Return this, for chaining.
+     */
+    remove: function () {
+      // Remove known augmentations to HTML so that they do not persist.
+      this.$('.ipe-actions-block').remove();
+      this.$el.removeClass('ipe-highlight active');
+
+      // Update our Block model HTML based on our current visual state.
+      this.model.set({html: this.$el.prop('outerHTML')});
+
+      // Call the normal Backbow.view.remove() routines.
+      this._removeElement();
+      this.stopListening();
+      return this;
+    },
+
+    /**
+     * Reacts to our model being synced from the server.
+     */
+    finishedSync: function () {
+      this.model.set('syncing', false);
     }
 
   });

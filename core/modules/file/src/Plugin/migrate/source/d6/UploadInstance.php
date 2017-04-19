@@ -8,7 +8,7 @@ use Drupal\migrate\Plugin\migrate\source\DummyQueryTrait;
 /**
  * Drupal 6 upload instance source from database.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d6_upload_instance",
  *   source_provider = "upload"
  * )
@@ -33,7 +33,7 @@ class UploadInstance extends DrupalSqlBase {
     $return = array();
     $values = $this->select('variable', 'v')
       ->fields('v', ['name', 'value'])
-      ->condition('name', $variables, 'IN')
+      ->condition('v.name', $variables, 'IN')
       ->execute()
       ->fetchAllKeyed();
     foreach ($node_types as $node_type) {

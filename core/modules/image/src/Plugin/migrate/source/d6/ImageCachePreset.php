@@ -8,7 +8,7 @@ use Drupal\migrate\Row;
 /**
  * Drupal 6 imagecache presets source from database.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d6_imagecache_presets",
  *   source_provider = "imagecache"
  * )

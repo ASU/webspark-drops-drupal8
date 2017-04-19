@@ -5,7 +5,7 @@ namespace Drupal\taxonomy\Plugin\migrate\source\d6;
 /**
  * Source returning tids from the term_node table for the non-current revision.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d6_term_node_revision"
  * )
  */

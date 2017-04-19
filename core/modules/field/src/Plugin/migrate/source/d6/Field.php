@@ -8,7 +8,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
 /**
  * Drupal 6 field source from database.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d6_field",
  *   source_provider = "content"
  * )

@@ -15,14 +15,19 @@
      * @type {function}
      */
     template_form: _.template(
-      '<h4>Configure <strong><%- label %></strong> layout</h4>' +
+      '<h4>' + Drupal.t('Configure <strong><%- label %></strong> layout') + '</h4>' +
       '<div class="ipe-layout-form ipe-form"><div class="ipe-icon ipe-icon-loading"></div></div>'
     ),
 
     /**
      * @type {function}
      */
-    template_layout: _.template('<li class="ipe-layout" data-layout-id="<%- id %>"><img class="ipe-layout-image" src="<%- icon %>" title="<%- label %>" alt="<%- label %>" /></li>'),
+    template_layout: _.template(
+    '<a href="javascript:;" class="ipe-layout" data-layout-id="<%- id %>">' +
+    '  <img class="ipe-layout-image" src="<%- icon %>" title="<%- label %>" alt="<%- label %>" />' +
+    '  <span class="ipe-layout-label"><%- label %></span>' +
+    '</a>'
+    ),
 
     /**
      * @type {function}
@@ -89,20 +94,23 @@
       this.renderCategories();
 
       // Flag the current layout.
-      var current_layout_text = Drupal.t('<p>@text</p>', {'@text': 'Current Layout'});
+      var current_layout_text = '<p>' + Drupal.t('Current Layout') + '</p>';
       this.$('[data-layout-id="' + current_layout + '"]').append(current_layout_text);
 
       // Prepend the current layout as its own category.
       this.$('.ipe-categories').prepend(this.template_category({
-        name: 'Current Layout',
+        name: Drupal.t('Current Layout'),
         count: null,
         active: this.activeCategory === 'Current Layout'
       }));
 
       // If we're viewing the current layout tab, show a custom item.
-      if (this.activeCategory && this.activeCategory == 'Current Layout') {
+      if (this.activeCategory && this.activeCategory === 'Current Layout') {
+        // Hide the search box.
+        this.$('.ipe-category-picker-search').hide();
+
         this.collection.each(function (layout) {
-          if (Drupal.panels_ipe.app.get('layout').get('id') == layout.get('id')) {
+          if (Drupal.panels_ipe.app.get('layout').get('id') === layout.get('id')) {
             this.$('.ipe-category-picker-top').append(this.template_item(layout));
           }
         }, this);
@@ -120,7 +128,7 @@
      * @return {string}
      *   The rendered block plugin.
      */
-    template_item: function(layout) {
+    template_item: function (layout) {
       return this.template_layout(layout.toJSON());
     },
 
@@ -133,7 +141,7 @@
      * @return {Object}
      *   An object containing the properties "url" and "model".
      */
-    getFormInfo: function(e) {
+    getFormInfo: function (e) {
       // Get the current layout_id.
       var layout_id = $(e.currentTarget).data('layout-id');
 

@@ -9,7 +9,7 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
 /**
  * Drupal 6 vocabularies source from database.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d6_taxonomy_vocabulary",
  *   source_provider = "taxonomy"
  * )

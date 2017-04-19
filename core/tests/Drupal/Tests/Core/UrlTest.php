@@ -154,7 +154,7 @@ class UrlTest extends UnitTestCase {
     return $urls;
   }
 
-   /**
+  /**
    * This constraint checks whether a Request object has the right path.
    *
    * @param string $path
@@ -333,6 +333,18 @@ class UrlTest extends UnitTestCase {
   public function testGetUriForExternalUrl() {
     $url = Url::fromUri('http://example.com/test');
     $this->assertEquals('http://example.com/test', $url->getUri());
+  }
+
+  /**
+   * Tests the getUri() and isExternal() methods for protocol-relative URLs.
+   *
+   * @covers ::getUri
+   * @covers ::isExternal
+   */
+  public function testGetUriForProtocolRelativeUrl() {
+    $url = Url::fromUri('//example.com/test');
+    $this->assertEquals('//example.com/test', $url->getUri());
+    $this->assertTrue($url->isExternal());
   }
 
   /**
@@ -799,7 +811,7 @@ class UrlTest extends UnitTestCase {
    * Creates a mock access manager for the access tests.
    *
    * @param bool $access
-   * @param \Drupal\Core\Session\AccountInterface|NULL $account
+   * @param \Drupal\Core\Session\AccountInterface|null $account
    *
    * @return \Drupal\Core\Access\AccessManagerInterface|\PHPUnit_Framework_MockObject_MockObject
    */

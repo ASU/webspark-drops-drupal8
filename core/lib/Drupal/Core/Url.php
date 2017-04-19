@@ -272,7 +272,11 @@ class Url {
     if ($uri_parts === FALSE) {
       throw new \InvalidArgumentException("The URI '$uri' is malformed.");
     }
-    if (empty($uri_parts['scheme'])) {
+    // We support protocol-relative URLs.
+    if (strpos($uri, '//') === 0) {
+      $uri_parts['scheme'] = '';
+    }
+    elseif (empty($uri_parts['scheme'])) {
       throw new \InvalidArgumentException("The URI '$uri' is invalid. You must use a valid URI scheme.");
     }
     $uri_parts += ['path' => ''];
@@ -841,7 +845,7 @@ class Url {
   /**
    * Sets the URL generator.
    *
-   * @param \Drupal\Core\Routing\UrlGeneratorInterface
+   * @param \Drupal\Core\Routing\UrlGeneratorInterface $url_generator
    *   (optional) The URL generator, specify NULL to reset it.
    *
    * @return $this
@@ -855,7 +859,7 @@ class Url {
   /**
    * Sets the unrouted URL assembler.
    *
-   * @param \Drupal\Core\Utility\UnroutedUrlAssemblerInterface
+   * @param \Drupal\Core\Utility\UnroutedUrlAssemblerInterface $url_assembler
    *   The unrouted URL assembler.
    *
    * @return $this

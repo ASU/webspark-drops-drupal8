@@ -115,8 +115,8 @@ function drupal_install_profile_distribution_name() {
  * Loads the installation profile, extracting its defined version.
  *
  * @return string Distribution version defined in the profile's .info.yml file.
- * Defaults to \Drupal::VERSION if no version is explicitly provided
- * by the installation profile.
+ *   Defaults to \Drupal::VERSION if no version is explicitly provided
+ *   by the installation profile.
  *
  * @see install_profile_info()
  */
@@ -139,7 +139,7 @@ function drupal_install_profile_distribution_version() {
  * Detects all supported databases that are compiled into PHP.
  *
  * @return
- *  An array of database types compiled into PHP.
+ *   An array of database types compiled into PHP.
  */
 function drupal_detect_database_types() {
   $databases = drupal_get_database_types();
@@ -486,16 +486,12 @@ function drupal_install_config_directories() {
 
   // Add a randomized config directory name to settings.php, unless it was
   // manually defined in the existing already.
-  $settings = [];
-  $config_directories_hash = Crypt::randomBytesBase64(55);
   if (empty($config_directories[CONFIG_SYNC_DIRECTORY])) {
+    $config_directories[CONFIG_SYNC_DIRECTORY] = \Drupal::service('site.path') . '/files/config_' . Crypt::randomBytesBase64(55) . '/sync';
     $settings['config_directories'][CONFIG_SYNC_DIRECTORY] = (object) [
-      'value' => \Drupal::service('site.path') . '/files/config_' . $config_directories_hash . '/sync',
+      'value' => $config_directories[CONFIG_SYNC_DIRECTORY],
       'required' => TRUE,
     ];
-  }
-
-  if (!empty($settings)) {
     // Rewrite settings.php, which also sets the value as global variable.
     drupal_rewrite_settings($settings);
   }
@@ -506,19 +502,21 @@ function drupal_install_config_directories() {
   // public files directory, which has already been verified to be writable
   // itself. But if it somehow fails anyway, the installation cannot proceed.
   // Bail out using a similar error message as in system_requirements().
-  if (!install_ensure_config_directory(CONFIG_SYNC_DIRECTORY)) {
-    throw new Exception(t('The directory %directory could not be created or could not be made writable. To proceed with the installation, either create the directory and modify its permissions manually or ensure that the installer has the permissions to create it automatically. For more information, see the <a href=":handbook_url">online handbook</a>.', array(
+  if (!file_prepare_directory($config_directories[CONFIG_SYNC_DIRECTORY], FILE_CREATE_DIRECTORY)
+    && !file_exists($config_directories[CONFIG_SYNC_DIRECTORY])) {
+    throw new Exception(t('The directory %directory could not be created. To proceed with the installation, either create the directory or ensure that the installer has the permissions to create it automatically. For more information, see the <a href=":handbook_url">online handbook</a>.', array(
       '%directory' => config_get_config_directory(CONFIG_SYNC_DIRECTORY),
       ':handbook_url' => 'https://www.drupal.org/server-permissions',
     )));
   }
-
-  // Put a README.txt into the sync config directory. This is required so that
-  // they can later be added to git. Since this directory is auto-created, we
-  // have to write out the README rather than just adding it to the drupal core
-  // repo.
-  $text = 'This directory contains configuration to be imported into your Drupal site. To make this configuration active, visit admin/config/development/configuration/sync.' . ' For information about deploying configuration between servers, see https://www.drupal.org/documentation/administer/config';
-  file_put_contents(config_get_config_directory(CONFIG_SYNC_DIRECTORY) . '/README.txt', $text);
+  elseif (is_writable($config_directories[CONFIG_SYNC_DIRECTORY])) {
+    // Put a README.txt into the sync config directory. This is required so that
+    // they can later be added to git. Since this directory is auto-created, we
+    // have to write out the README rather than just adding it to the drupal core
+    // repo.
+    $text = 'This directory contains configuration to be imported into your Drupal site. To make this configuration active, visit admin/config/development/configuration/sync.' . ' For information about deploying configuration between servers, see https://www.drupal.org/documentation/administer/config';
+    file_put_contents(config_get_config_directory(CONFIG_SYNC_DIRECTORY) . '/README.txt', $text);
+  }
 }
 
 /**
@@ -529,6 +527,9 @@ function drupal_install_config_directories() {
  *
  * @return bool
  *   TRUE if the config directory exists and is writable.
+ *
+ * @deprecated in Drupal 8.1.x, will be removed before Drupal 9.0.x. Use
+ *   config_get_config_directory() and file_prepare_directory() instead.
  */
 function install_ensure_config_directory($type) {
   // The config directory must be defined in settings.php.
@@ -724,7 +725,7 @@ function drupal_verify_install_file($file, $mask = NULL, $type = 'file') {
  *   (optional) Whether to output messages. Defaults to TRUE.
  *
  * @return
- *  TRUE/FALSE whether or not the directory was successfully created.
+ *   TRUE/FALSE whether or not the directory was successfully created.
  */
 function drupal_install_mkdir($file, $mask, $message = TRUE) {
   $mod = 0;
@@ -773,7 +774,7 @@ function drupal_install_mkdir($file, $mask, $message = TRUE) {
  *   (optional) Whether to output messages. Defaults to TRUE.
  *
  * @return
- *  TRUE/FALSE whether or not we were able to fix the file's permissions.
+ *   TRUE/FALSE whether or not we were able to fix the file's permissions.
  */
 function drupal_install_fix_file($file, $mask, $message = TRUE) {
   // If $file does not exist, fileperms() issues a PHP warning.
@@ -929,27 +930,35 @@ function drupal_requirements_url($severity) {
  */
 function drupal_check_profile($profile) {
   $info = install_profile_info($profile);
-
   // Collect requirement testing results.
   $requirements = array();
-
   // Performs an ExtensionDiscovery scan as the system module is unavailable and
   // we don't yet know where all the modules are located.
   // @todo Remove as part of https://www.drupal.org/node/2186491
-  $listing = new ExtensionDiscovery(\Drupal::root());
-  $module_list = $listing->scan('module');
-  foreach ($info['dependencies'] as $module) {
-    $file = \Drupal::root() . '/' . $module_list[$module]->getPath() . "/$module.install";
-    if (is_file($file)) {
-      require_once $file;
-    }
-    $function = $module . '_requirements';
+  $drupal_root = \Drupal::root();
+  $module_list = (new ExtensionDiscovery($drupal_root))->scan('module');
 
-    drupal_classloader_register($module, $module_list[$module]->getPath());
-    if (function_exists($function)) {
-      $requirements = array_merge($requirements, $function('install'));
+  foreach ($info['dependencies'] as $module) {
+    // If the module is in the module list we know it exists and we can continue
+    // including and registering it.
+    // @see \Drupal\Core\Extension\ExtensionDiscovery::scanDirectory()
+    if (isset($module_list[$module])) {
+      $function = $module . '_requirements';
+      $module_path = $module_list[$module]->getPath();
+      $install_file = "$drupal_root/$module_path/$module.install";
+
+      if (is_file($install_file)) {
+        require_once $install_file;
+      }
+
+      drupal_classloader_register($module, $module_path);
+
+      if (function_exists($function)) {
+        $requirements = array_merge($requirements, $function('install'));
+      }
     }
   }
+
   return $requirements;
 }
 
@@ -1035,10 +1044,11 @@ function drupal_check_module($module) {
  *
  * Example of .info.yml file:
  * @code
- *    name = Minimal
- *    description = Start fresh, with only a few modules enabled.
- *    dependencies[] = block
- *    dependencies[] = dblog
+ *    name: Minimal
+ *    description: Start fresh, with only a few modules enabled.
+ *    dependencies:
+ *      - block
+ *      - dblog
  * @endcode
  *
  * @param $profile

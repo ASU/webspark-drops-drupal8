@@ -8,7 +8,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\d7\FieldableEntity;
 /**
  * Drupal 7 node source from database.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d7_node",
  *   source_provider = "node"
  * )
@@ -50,7 +50,7 @@ class Node extends FieldableEntity {
     $query->innerJoin('node', 'n', static::JOIN);
 
     if (isset($this->configuration['node_type'])) {
-      $query->condition('type', $this->configuration['node_type']);
+      $query->condition('n.type', $this->configuration['node_type']);
     }
 
     return $query;

@@ -7,7 +7,7 @@ projects[panopoly_core][version] = 2.x-dev
 projects[panopoly_core][type] = module
 projects[panopoly_core][subdir] = panopoly
 projects[panopoly_core][download][type] = git
-projects[panopoly_core][download][revision] = 66de1f8
+projects[panopoly_core][download][revision] = e76f56a
 projects[panopoly_core][download][branch] = 8.x-2.x
 
 projects[panopoly_images][version] = 2.x-dev
@@ -47,7 +47,7 @@ projects[panopoly_widgets][download][branch] = 8.x-2.x
 projects[panopoly_pages][version] = 2.x-dev
 projects[panopoly_pages][subdir] = panopoly
 projects[panopoly_pages][download][type] = git
-projects[panopoly_pages][download][revision] = 9019ec0
+projects[panopoly_pages][download][revision] = ca3c671
 projects[panopoly_pages][download][branch] = 8.x-2.x
 
 ;projects[panopoly_wysiwyg][version] = 1.x-dev
@@ -64,11 +64,11 @@ projects[panopoly_pages][download][branch] = 8.x-2.x
 
 ; For running the automated tests.
 
-;projects[panopoly_test][version] = 1.x-dev
-;projects[panopoly_test][subdir] = panopoly
-;projects[panopoly_test][download][type] = git
-;projects[panopoly_test][download][revision] = 06a8d46
-;projects[panopoly_test][download][branch] = 7.x-1.x
+projects[panopoly_test][version] = 2.x-dev
+projects[panopoly_test][subdir] = panopoly
+projects[panopoly_test][download][type] = git
+projects[panopoly_test][download][revision] = dfdc728
+projects[panopoly_test][download][branch] = 8.x-2.x
 
 ; The Panopoly Apps (remove once there's true Apps support)
 

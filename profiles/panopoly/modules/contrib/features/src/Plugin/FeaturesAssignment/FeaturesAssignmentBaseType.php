@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\features\Plugin\FeaturesAssignment\FeaturesAssignmentBaseType.
- */
-
 namespace Drupal\features\Plugin\FeaturesAssignment;
 
 use Drupal\component\Utility\Unicode;
@@ -54,7 +49,6 @@ class FeaturesAssignmentBaseType extends FeaturesAssignmentMethodBase {
           catch (\Exception $exception) {
             \Drupal::logger('features')->error($exception->getMessage());
           }
-          $this->featuresManager->assignConfigDependents([$item_name]);
         }
       }
     }

@@ -7,7 +7,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
 /**
  * Drupal 6 block source from database.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d6_box"
  * )
  */
@@ -19,7 +19,7 @@ class Box extends DrupalSqlBase {
   public function query() {
     $query = $this->select('boxes', 'b')
       ->fields('b', array('bid', 'body', 'info', 'format'));
-    $query->orderBy('bid');
+    $query->orderBy('b.bid');
 
     return $query;
   }

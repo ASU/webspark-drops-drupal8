@@ -5,7 +5,7 @@ namespace Drupal\node\Plugin\migrate\source\d7;
 /**
  * Drupal 7 node revision source from database.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d7_node_revision",
  *   source_provider = "node"
  * )

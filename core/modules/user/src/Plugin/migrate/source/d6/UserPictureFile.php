@@ -8,7 +8,7 @@ use Drupal\migrate\Row;
 /**
  * Drupal 6 user picture source from database.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d6_user_picture_file"
  * )
  */
@@ -33,7 +33,7 @@ class UserPictureFile extends DrupalSqlBase {
    */
   public function query() {
     $query = $this->select('users', 'u')
-      ->condition('picture', '', '<>')
+      ->condition('u.picture', '', '<>')
       ->fields('u', array('uid', 'picture'));
     return $query;
   }

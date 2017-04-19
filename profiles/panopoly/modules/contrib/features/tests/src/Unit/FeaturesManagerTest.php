@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\features\Unit\FeaturesManagerTest.
- */
-
 namespace Drupal\Tests\features\Unit;
 
 use Drupal\Component\Serialization\Yaml;
@@ -18,6 +13,7 @@ use Drupal\Core\Extension\Extension;
 use Drupal\Core\Extension\InfoParser;
 use Drupal\Core\Extension\InfoParserInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\config_update\ConfigRevertInterface;
 use Drupal\features\Entity\FeaturesBundle;
 use Drupal\features\FeaturesAssignerInterface;
 use Drupal\features\FeaturesBundleInterface;
@@ -72,6 +68,11 @@ class FeaturesManagerTest extends UnitTestCase {
   protected $moduleHandler;
 
   /**
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface|\PHPUnit_Framework_MockObject_MockObject
+   */
+  protected $configReverter;
+
+  /**
    * {@inheritdoc}
    */
   public function setUp() {
@@ -81,6 +82,9 @@ class FeaturesManagerTest extends UnitTestCase {
     $entity_type->expects($this->any())
       ->method('getConfigPrefix')
       ->willReturn('custom');
+    $entity_type->expects($this->any())
+      ->method('getProvider')
+      ->willReturn('my_module');
     $this->entityManager = $this->getMock('\Drupal\Core\Entity\EntityManagerInterface');
     $this->entityManager->expects($this->any())
       ->method('getDefinition')
@@ -89,7 +93,19 @@ class FeaturesManagerTest extends UnitTestCase {
     $this->configStorage = $this->getMock(StorageInterface::class);
     $this->configManager = $this->getMock(ConfigManagerInterface::class);
     $this->moduleHandler = $this->getMock(ModuleHandlerInterface::class);
-    $this->featuresManager = new FeaturesManager($this->root, $this->entityManager, $this->configFactory, $this->configStorage, $this->configManager, $this->moduleHandler);
+    // getModuleList should return an array of extension objects.
+    // but we just need ::getConfigDependency isset($module_list[$provider]).
+    $this->moduleHandler->expects($this->any())
+      ->method('getModuleList')
+      ->willReturn(['my_module' => true]);
+    $this->configReverter = $this->getMock(ConfigRevertInterface::class);
+    $this->configReverter->expects($this->any())
+      ->method('import')
+      ->willReturn(true);
+    $this->configReverter->expects($this->any())
+      ->method('revert')
+      ->willReturn(true);
+    $this->featuresManager = new FeaturesManager($this->root, $this->entityManager, $this->configFactory, $this->configStorage, $this->configManager, $this->moduleHandler, $this->configReverter);
 
     $string_translation = $this->getStringTranslationStub();
     $container = new ContainerBuilder();
@@ -159,9 +175,12 @@ class FeaturesManagerTest extends UnitTestCase {
 
   /**
    * @covers ::setPackage
+   * @covers ::getPackage
    */
   public function testSetPackage() {
-    // @todo
+    $package = new Package('foo');
+    $this->featuresManager->setPackage($package);
+    $this->assertEquals($package, $this->featuresManager->getPackage('foo'));
   }
 
   protected function getAssignInterPackageDependenciesConfigCollection() {
@@ -204,7 +223,7 @@ class FeaturesManagerTest extends UnitTestCase {
     $bundle->isDefault()->willReturn(TRUE);
     $assigner->getBundle('')->willReturn($bundle->reveal());
     // Use the wrapper because we need ::drupalGetProfile().
-    $features_manager = new TestFeaturesManager($this->root, $this->entityManager, $this->configFactory, $this->configStorage, $this->configManager, $this->moduleHandler);
+    $features_manager = new TestFeaturesManager($this->root, $this->entityManager, $this->configFactory, $this->configStorage, $this->configManager, $this->moduleHandler, $this->configReverter);
     $features_manager->setAssigner($assigner->reveal());
 
     $features_manager->setConfigCollection($this->getAssignInterPackageDependenciesConfigCollection());
@@ -252,7 +271,7 @@ class FeaturesManagerTest extends UnitTestCase {
     $bundle->getMachineName()->willReturn('giraffe');
     $assigner->getBundle('giraffe')->willReturn($bundle->reveal());
     // Use the wrapper because we need ::drupalGetProfile().
-    $features_manager = new TestFeaturesManager($this->root, $this->entityManager, $this->configFactory, $this->configStorage, $this->configManager, $this->moduleHandler);
+    $features_manager = new TestFeaturesManager($this->root, $this->entityManager, $this->configFactory, $this->configStorage, $this->configManager, $this->moduleHandler, $this->configReverter);
     $features_manager->setAssigner($assigner->reveal());
     $features_manager->setConfigCollection($this->getAssignInterPackageDependenciesConfigCollection());
 
@@ -380,7 +399,7 @@ class FeaturesManagerTest extends UnitTestCase {
     ]);
 
 
-    $features_manager = new TestFeaturesManager($this->root, $this->entityManager, $this->configFactory, $config_storage->reveal(), $this->configManager, $this->moduleHandler);
+    $features_manager = new TestFeaturesManager($this->root, $this->entityManager, $this->configFactory, $config_storage->reveal(), $this->configManager, $this->moduleHandler, $this->configReverter);
     $features_manager->setExtensionStorages($extension_storage->reveal());
 
     $this->assertEquals(['test_overridden'], $features_manager->detectOverrides($package));
@@ -414,7 +433,7 @@ class FeaturesManagerTest extends UnitTestCase {
     $this->featuresManager->assignConfigPackage('test_package', ['test_config', 'test_config2']);
 
     $this->assertEquals(['test_config', 'test_config2'], $this->featuresManager->getPackage('test_package')->getConfig());
-    $this->assertEquals(['example'], $this->featuresManager->getPackage('test_package')->getDependencies());
+    $this->assertEquals(['example', 'my_module'], $this->featuresManager->getPackage('test_package')->getDependencies());
   }
 
   /**
@@ -459,7 +478,7 @@ class FeaturesManagerTest extends UnitTestCase {
     \Drupal::getContainer()->set('info_parser', $info_parser->reveal());
 
     $bundle = $this->prophesize(FeaturesBundle::class);
-    $bundle->getShortName('test_module')->willReturn('test_module');
+    $bundle->getFullName('test_module')->willReturn('test_module');
     $bundle->isDefault()->willReturn(TRUE);
 
     $assigner = $this->prophesize(FeaturesAssignerInterface::class);
@@ -496,7 +515,7 @@ class FeaturesManagerTest extends UnitTestCase {
     \Drupal::getContainer()->set('info_parser', $info_parser->reveal());
 
     $bundle = $this->prophesize(FeaturesBundle::class);
-    $bundle->getShortName('test_module')->willReturn('test_module');
+    $bundle->getFullName('test_module')->willReturn('test_module');
     $bundle->isDefault()->willReturn(TRUE);
 
     $assigner = $this->prophesize(FeaturesAssignerInterface::class);
@@ -526,7 +545,7 @@ class FeaturesManagerTest extends UnitTestCase {
       'key' => 'value',
     ]);
 
-    $features_manager = new TestFeaturesManager($this->root, $this->entityManager, $this->configFactory, $this->configStorage, $this->configManager, $this->moduleHandler);
+    $features_manager = new TestFeaturesManager($this->root, $this->entityManager, $this->configFactory, $this->configStorage, $this->configManager, $this->moduleHandler, $this->configReverter);
     $features_manager->setExtensionStorages($extension_storage->reveal());
 
     $this->assertEmpty($features_manager->detectNew($package));
@@ -538,7 +557,7 @@ class FeaturesManagerTest extends UnitTestCase {
     $extension_storage = $this->prophesize(FeaturesExtensionStoragesInterface::class);
     $extension_storage->read('test_config')->willReturn(FALSE);
 
-    $features_manager = new TestFeaturesManager($this->root, $this->entityManager, $this->configFactory, $this->configStorage, $this->configManager, $this->moduleHandler);
+    $features_manager = new TestFeaturesManager($this->root, $this->entityManager, $this->configFactory, $this->configStorage, $this->configManager, $this->moduleHandler, $this->configReverter);
     $features_manager->setExtensionStorages($extension_storage->reveal());
 
     $this->assertEquals(['test_config'], $features_manager->detectNew($package));
@@ -573,10 +592,13 @@ class FeaturesManagerTest extends UnitTestCase {
     return $data;
   }
 
+  /**
+   * @covers ::initPackage
+   **/
   public function testInitPackageWithNewPackage() {
-    $bundle = new FeaturesBundle(['machine_name' => 'default'], 'features_bundle');
+    $bundle = new FeaturesBundle(['machine_name' => 'test'], 'features_bundle');
 
-    $features_manager = new TestFeaturesManager($this->root, $this->entityManager, $this->configFactory, $this->configStorage, $this->configManager, $this->moduleHandler);
+    $features_manager = new TestFeaturesManager($this->root, $this->entityManager, $this->configFactory, $this->configStorage, $this->configManager, $this->moduleHandler, $this->configReverter);
     $features_manager->setAllModules([]);
 
     $package = $features_manager->initPackage('test_feature', 'test name', 'test description', 'module', $bundle);
@@ -586,14 +608,20 @@ class FeaturesManagerTest extends UnitTestCase {
     $this->assertEquals('test name', $package->getName());
     $this->assertEquals('test description', $package->getDescription());
     $this->assertEquals('module', $package->getType());
-    $this->assertEquals('', $package->getBundle());
-    $this->assertEquals([], $package->getFeaturesInfo());
+    $this->assertEquals(['bundle' => 'test'], $package->getFeaturesInfo());
+    $this->assertEquals('test', $package->getBundle());
+    $this->assertEquals(FALSE, $package->getRequired());
+    $this->assertEquals([], $package->getExcluded());
   }
 
+  /**
+   * @covers ::getFeaturesInfo
+   * @covers ::getFeaturesModules
+   **/
   public function testInitPackageWithExistingPackage() {
-    $bundle = new FeaturesBundle(['machine_name' => 'default'], 'features_bundle');
+    $bundle = new FeaturesBundle(['machine_name' => 'test'], 'features_bundle');
 
-    $features_manager = new TestFeaturesManager('vfs://drupal', $this->entityManager, $this->configFactory, $this->configStorage, $this->configManager, $this->moduleHandler);
+    $features_manager = new TestFeaturesManager('vfs://drupal', $this->entityManager, $this->configFactory, $this->configStorage, $this->configManager, $this->moduleHandler, $this->configReverter);
 
     vfsStream::setup('drupal');
     \Drupal::getContainer()->set('app.root', 'vfs://drupal');
@@ -608,7 +636,10 @@ description: test description 2
 EOT
       ,
           'test_feature.features.yml' => <<<EOT
-true
+bundle: test
+excluded:
+  - system.theme
+required: true
 EOT
           ,
         ],
@@ -627,8 +658,26 @@ EOT
 
     $package = $features_manager->initPackage('test_feature', 'test name', 'test description', 'module', $bundle);
 
+    $this->assertEquals([
+      'bundle' => 'test',
+      'excluded' => [
+        0 => 'system.theme',
+      ],
+      'required' => TRUE,
+    ], $features_manager->getFeaturesInfo($extension));
+    $this->assertEquals(['test_feature' => $extension], $features_manager->getFeaturesModules($bundle));
+
     $this->assertInstanceOf(Package::class, $package);
-    $this->assertEquals(TRUE, $package->getFeaturesInfo());
+    $this->assertEquals([
+      'bundle' => 'test',
+      'excluded' => [
+        0 => 'system.theme',
+      ],
+      'required' => TRUE,
+    ], $package->getFeaturesInfo());
+    $this->assertEquals('test', $package->getBundle());
+    $this->assertEquals(TRUE, $package->getRequired());
+    $this->assertEquals(['system.theme'], $package->getExcluded());
   }
 
   /**
@@ -677,7 +726,7 @@ EOT
         ],
       ],
     ]);
-    $this->featuresManager = new FeaturesManager($this->root, $this->entityManager, $config_factory, $this->configStorage, $this->configManager, $this->moduleHandler);
+    $this->featuresManager = new FeaturesManager($this->root, $this->entityManager, $config_factory, $this->configStorage, $this->configManager, $this->moduleHandler, $this->configReverter);
 
     $package = new Package('test_feature');
     $result = $this->featuresManager->getExportInfo($package);
@@ -696,7 +745,7 @@ EOT
         ],
       ],
     ]);
-    $this->featuresManager = new FeaturesManager($this->root, $this->entityManager, $config_factory, $this->configStorage, $this->configManager, $this->moduleHandler);
+    $this->featuresManager = new FeaturesManager($this->root, $this->entityManager, $config_factory, $this->configStorage, $this->configManager, $this->moduleHandler, $this->configReverter);
 
     $package = new Package('test_feature');
     $bundle = new FeaturesBundle(['machine_name' => 'test_bundle'], 'features_bundle');
@@ -704,6 +753,41 @@ EOT
     $result = $this->featuresManager->getExportInfo($package, $bundle);
 
     $this->assertEquals(['test_bundle_test_feature', 'modules/custom'], $result);
+  }
+
+  /**
+   * @covers ::import
+   */
+  public function testImport() {
+    $packages = [
+      'package' => new Package('package', [
+        'configOrig' => ['system_simple.example' => 'system_simple.example'],
+        'dependencies' => [],
+        'bundle' => '',
+      ]),
+      'package2' => new Package('package2', [
+        'configOrig' => ['system_simple.example2' => 'system_simple.example2'],
+        'dependencies' => [],
+        'bundle' => '',
+      ]),
+      'package3' => new Package('package3', [
+        'configOrig' => ['system_simple.example3' => 'system_simple.example3'],
+        'dependencies' => [],
+        'bundle' => '',
+      ]),
+    ];
+    $this->featuresManager->setPackages($packages);
+
+    $config_item = new ConfigurationItem('system_simple.example', [], ['package' => 'package']);
+    $config_item2 = new ConfigurationItem('system_simple.example2', [], ['package' => 'package2']);
+    $config_item3 = new ConfigurationItem('system_simple.example3', [], ['package' => 'package3']);
+    $this->featuresManager->setConfigCollection(['system_simple.example' => $config_item, 'system_simple.example3' => $config_item3]);
+
+    $result = $this->featuresManager->import(['package', 'package2']);
+    $this->assertEquals([
+      'new' => ['system_simple.example2'],
+      'updated' => ['system_simple.example']
+    ], $result);
   }
 
 }

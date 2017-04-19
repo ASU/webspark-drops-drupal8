@@ -16,7 +16,7 @@
      */
     template_tab: _.template(
       '<li class="ipe-tab<% if (active) { %> active<% } %>" data-tab-id="<%- id %>">' +
-      '  <a title="<%- title %>">' +
+      '  <a href="javascript:;" title="<%- title %>">' +
       '    <span class="ipe-icon ipe-icon-<% if (loading) { %>loading<% } else { print(id) } %>"></span>' +
       '    <span class="ipe-tab-title"><%- title %></span>' +
       '  </a>' +
@@ -59,6 +59,9 @@
      */
     initialize: function (options) {
       this.tabViews = options.tabViews;
+
+      // Bind our global key down handler to the document.
+      $(document).bind('keydown', $.proxy(this.keydownHandler, this));
     },
 
     /**
@@ -73,7 +76,10 @@
 
       // Setup the initial wrapping elements.
       this.$el.append('<ul class="ipe-tabs"></ul>');
-      this.$el.append('<div class="ipe-tabs-content"></div>');
+      this.$el.append('<div class="ipe-tabs-content" tabindex="-1"></div>');
+
+      // Remove any previously added body classes.
+      $('body').removeClass('panels-ipe-tabs-open');
 
       // Append each of our tabs and their tab content view.
       this.collection.each(function (tab) {
@@ -89,11 +95,17 @@
 
         // Check to see if this tab has content.
         if (tab.get('active') && this.tabViews[id]) {
+          // Add a top-level body class.
+          $('body').addClass('panels-ipe-tabs-open');
+
           // Render the tab content.
           this.$('.ipe-tabs-content').append(this.template_content(tab.toJSON()));
           this.tabViews[id].setElement('[data-tab-content-id="' + id + '"]').render();
         }
       }, this);
+
+      // Focus on the current tab.
+      this.$('.ipe-tab.active a').focus();
 
       return this;
     },
@@ -148,6 +160,11 @@
           }
           tab.set('active', false);
         }
+
+        // Inform the tab's view of the change.
+        if (this.tabViews[tab.get('id')]) {
+          this.tabViews[tab.get('id')].trigger('tabActiveChange', tab.get('active'));
+        }
       }, this);
 
       // Trigger a re-render, with animation if needed.
@@ -163,12 +180,43 @@
     },
 
     /**
+     * Handles keypress events, checking for contextual commands in IPE.
+     *
+     * @param {Object} e
+     *   The event object.
+     */
+    keydownHandler: function (e) {
+      if (e.keyCode === 27) {
+        // Get the currently focused element.
+        var $focused = $(':focus');
+
+        // If a tab is currently open and we are in focus, close the tab.
+        if (this.$el.has($focused).length) {
+          var active_tab = false;
+          this.collection.each(function (tab) {
+            if (tab.get('active')) {
+              active_tab = tab.get('id');
+            }
+          });
+          if (active_tab) {
+            this.switchTab(active_tab);
+          }
+        }
+      }
+    },
+
+    /**
      * Closes any currently open tab.
      */
     closeTabContent: function () {
       // Close the tab, then re-render.
       var self = this;
-      this.$('.ipe-tabs-content')['slideUp']('fast', function () { self.render(); });
+      this.$('.ipe-tabs-content')['slideUp']('fast', function () {
+        self.render();
+      });
+
+      // Remove our top-level body class.
+      $('body').removeClass('panels-ipe-tabs-open');
     },
 
     /**

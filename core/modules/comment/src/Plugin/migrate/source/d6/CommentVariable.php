@@ -6,7 +6,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
 use Drupal\migrate\Plugin\migrate\source\DummyQueryTrait;
 
 /**
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d6_comment_variable"
  * )
  */

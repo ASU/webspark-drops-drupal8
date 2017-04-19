@@ -8,7 +8,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\d7\FieldableEntity;
 /**
  * Drupal 7 comment source from database.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d7_comment",
  *   source_provider = "comment"
  * )

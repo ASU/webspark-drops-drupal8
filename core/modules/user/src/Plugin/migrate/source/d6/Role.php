@@ -8,7 +8,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
 /**
  * Drupal 6 role source from database.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d6_user_role"
  * )
  */
@@ -27,7 +27,7 @@ class Role extends DrupalSqlBase {
   public function query() {
     $query = $this->select('role', 'r')
       ->fields('r', array('rid', 'name'))
-      ->orderBy('rid');
+      ->orderBy('r.rid');
     return $query;
   }
 
@@ -69,7 +69,15 @@ class Role extends DrupalSqlBase {
       ->condition('rid', $rid)
       ->execute()
       ->fetchField();
-    $row->setSourceProperty('permissions', explode(', ', $permissions));
+
+    // If a role has no permissions then set to an empty array. The role will
+    // be migrated and given the default D8 permissions.
+    if ($permissions) {
+      $row->setSourceProperty('permissions', explode(', ', $permissions));
+    }
+    else {
+      $row->setSourceProperty('permissions', []);
+    }
     if (isset($this->filterPermissions[$rid])) {
       $row->setSourceProperty("filter_permissions:$rid", $this->filterPermissions[$rid]);
     }

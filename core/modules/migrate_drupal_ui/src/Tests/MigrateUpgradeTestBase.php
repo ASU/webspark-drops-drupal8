@@ -4,14 +4,14 @@ namespace Drupal\migrate_drupal_ui\Tests;
 
 use Drupal\Core\Database\Database;
 use Drupal\migrate\Plugin\MigrateIdMapInterface;
-use Drupal\migrate_drupal\MigrationCreationTrait;
+use Drupal\migrate_drupal\MigrationConfigurationTrait;
 use Drupal\simpletest\WebTestBase;
 
 /**
  * Provides a base class for testing migration upgrades in the UI.
  */
 abstract class MigrateUpgradeTestBase extends WebTestBase {
-  use MigrationCreationTrait;
+  use MigrationConfigurationTrait;
 
   /**
    * Use the Standard profile to test help implementations of many core modules.
@@ -30,7 +30,7 @@ abstract class MigrateUpgradeTestBase extends WebTestBase {
    *
    * @var array
    */
-  public static $modules = ['migrate_drupal_ui', 'telephone'];
+  public static $modules = ['language', 'content_translation', 'migrate_drupal_ui', 'telephone'];
 
   /**
    * {@inheritdoc}
@@ -104,7 +104,7 @@ abstract class MigrateUpgradeTestBase extends WebTestBase {
   protected function testMigrateUpgrade() {
     $connection_options = $this->sourceDatabase->getConnectionOptions();
     $this->drupalGet('/upgrade');
-    $this->assertText('Upgrade a Drupal site by importing it into a clean and empty new install of Drupal 8. You will lose any existing configuration once you import your site into it. See the upgrading handbook for more detailed information.');
+    $this->assertText('Upgrade a site by importing it into a clean and empty new install of Drupal 8. You will lose any existing configuration once you import your site into it. See the online documentation for Drupal site upgrades for more detailed information.');
 
     $this->drupalPostForm(NULL, [], t('Continue'));
     $this->assertText('Provide credentials for the database of the Drupal site you want to upgrade.');
@@ -174,6 +174,7 @@ abstract class MigrateUpgradeTestBase extends WebTestBase {
         }
       }
     }
+    \Drupal::service('module_installer')->install(['forum']);
   }
 
   /**

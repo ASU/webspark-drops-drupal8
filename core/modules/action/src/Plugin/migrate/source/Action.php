@@ -8,7 +8,7 @@ use Drupal\migrate\Row;
 /**
  * Drupal action source from database.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "action",
  *   source_provider = "system"
  * )

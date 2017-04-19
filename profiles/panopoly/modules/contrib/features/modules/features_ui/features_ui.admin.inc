@@ -6,7 +6,7 @@
  */
 
 use Drupal\Core\Render\Element;
-use Drupal\Component\Utility\SafeMarkup;
+Use \Drupal\Component\Render\FormattableMarkup;
 use Drupal\Component\Utility\Html;
 
 /**
@@ -20,6 +20,7 @@ use Drupal\Component\Utility\Html;
  */
 function theme_features_listing(array $variables) {
   $form = $variables['form'];
+  $renderer = \Drupal::service('renderer');
 
   // Individual table headers.
   $rows = array();
@@ -32,50 +33,39 @@ function theme_features_listing(array $variables) {
     // Add the checkbox into the first cell.
     unset($element['enable']['#title']);
 
-    $row[] = array('class' => array('checkbox'), 'data' => drupal_render($element['enable']));
+    $row[] = array('class' => array('checkbox'), 'data' => $renderer->render($element['enable']));
 
     // Add the module label and expand/collapse functionalty.
     $id = Html::getUniqueId('feature-' . $key);
-    $col2 = SafeMarkup::format('<label id="@id" for="@for" class="module-name table-filter-text-source">@name</label>',
+    $col2 = new FormattableMarkup('<label id="@id" for="@for" class="module-name table-filter-text-source">@name</label>',
       array(
         '@id' => $id,
         '@for' => $element['enable']['#id'],
-        '@name' => drupal_render($element['name']),
+        '@name' => $renderer->render($element['name']),
       )
     );
     $row[] = array('class' => array('module'), 'data' => $col2);
 
-    $row[] = array('class' => array('machine_name'), 'data' => drupal_render($element['machine_name']));
+    $row[] = array('class' => array('machine_name'), 'data' => $renderer->render($element['machine_name']));
 
-    $description = t('@details', array('@details' => drupal_render($element['details'])));
-    /*
-    $links = '';
-    foreach (array('help', 'permissions', 'configure') as $link_type) {
-      $links .= drupal_render($module['links'][$link_type]);
-    }
-    if ($links) {
-      $description .= '  <div class="links">';
-      $description .= $links;
-      $description .= '</div>';
-    }
-    */
+    $description = t('@details', array('@details' => $renderer->render($element['details'])));
     $details = array(
       '#type' => 'details',
-      '#title' => SafeMarkup::format('<span class="text">@desc</span>', array( '@desc' => drupal_render($element['description']))),
+      '#title' => new FormattableMarkup('<span class="text">@desc</span>', array( '@desc' => $renderer->render($element['description']))),
       '#attributes' => array('id' => $element['enable']['#id'] . '-description'),
       '#description' => $description,
     );
     $row[] = array(
       'class' => array('description', 'expand'),
-      'data' => drupal_render($details),
+      'data' => $renderer->render($details),
     );
     $row[] = array(
       'class' => array('feature-version'),
-      'data' => drupal_render($element['version']),
+      'data' => $renderer->render($element['version']),
     );
     $row[] = array(
       'class' => array('feature-state'),
-      'data' => drupal_render($element['state']),
+      'data' => $renderer->render($element['state']),
     );
 
     $rows[] = array('data' => $row);
@@ -87,7 +77,7 @@ function theme_features_listing(array $variables) {
     '#options' => $rows,
     '#empty' => t('No Features packages available.'),
   );
-  return drupal_render($table);
+  return $renderer->render($table);
 }
 
 /**
@@ -180,5 +170,6 @@ function theme_features_items(array $variables) {
  * Themes the assignment form.
  */
 function theme_assignment_form(array $variables) {
-  return drupal_render($variables['form']);
+  $renderer = \Drupal::service('renderer');
+  return $renderer->render($variables['form']);
 }

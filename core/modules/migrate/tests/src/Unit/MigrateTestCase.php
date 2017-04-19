@@ -80,7 +80,7 @@ abstract class MigrateTestCase extends UnitTestCase {
 
     $migration->method('getHighWaterProperty')
       ->willReturnCallback(function () use ($configuration) {
-        return isset($configuration['highWaterProperty']) ? $configuration['highWaterProperty'] : '';
+        return isset($configuration['high_water_property']) ? $configuration['high_water_property'] : '';
       });
 
     $migration->method('set')
@@ -199,9 +199,11 @@ abstract class MigrateTestCase extends UnitTestCase {
    */
   protected function retrievalAssertHelper($expected_value, $actual_value, $message) {
     if (is_array($expected_value)) {
-      foreach ($expected_value as $k => $v) {
-        $this->retrievalAssertHelper($v, $actual_value[$k], $message . '[' . $k . ']');
+      // If the expected and actual values are empty, no need to array compare.
+      if (empty($expected_value && $actual_value)) {
+        return;
       }
+      $this->assertArrayEquals($expected_value, $actual_value, $message);
     }
     else {
       $this->assertSame((string) $expected_value, (string) $actual_value, $message);

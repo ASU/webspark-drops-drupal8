@@ -10,7 +10,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
 /**
  * Drupal i18n_variable source from database.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "i18n_variable"
  * )
  */

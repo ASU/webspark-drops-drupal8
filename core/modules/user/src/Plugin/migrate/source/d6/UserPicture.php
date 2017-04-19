@@ -9,7 +9,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
  *
  * @todo Support default picture?
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d6_user_picture"
  * )
  */
@@ -22,7 +22,7 @@ class UserPicture extends DrupalSqlBase {
     $query = $this->select('users', 'u')
       ->condition('picture', '', '<>')
       ->fields('u', array('uid', 'access', 'picture'))
-      ->orderBy('access');
+      ->orderBy('u.access');
     return $query;
   }
 

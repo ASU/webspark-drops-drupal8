@@ -64,6 +64,8 @@ use Drupal\Core\Access\AccessResult;
  * sure to restore your {node_access} record after node_access_rebuild() is
  * called.
  *
+ * For a detailed example, see node_access_example.module.
+ *
  * @param \Drupal\Core\Session\AccountInterface $account
  *   The account object whose grants are requested.
  * @param string $op
@@ -72,8 +74,6 @@ use Drupal\Core\Access\AccessResult;
  * @return array
  *   An array whose keys are "realms" of grants, and whose values are arrays of
  *   the grant IDs within this realm that this user is being granted.
- *
- * For a detailed example, see node_access_example.module.
  *
  * @see node_access_view_all_nodes()
  * @see node_access_rebuild()
@@ -492,8 +492,7 @@ function hook_node_links_alter(array &$links, NodeInterface $entity, array &$con
     '#links' => array(
       'node-report' => array(
         'title' => t('Report'),
-        'href' => "node/{$entity->id()}/report",
-        'query' => array('token' => \Drupal::getContainer()->get('csrf_token')->get("node/{$entity->id()}/report")),
+        'url' => Url::fromRoute('node_test.report', ['node' => $entity->id()], ['query' => ['token' => \Drupal::getContainer()->get('csrf_token')->get("node/{$entity->id()}/report")]]),
       ),
     ),
   );

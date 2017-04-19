@@ -8,7 +8,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
 /**
  * Drupal 6 file source from database.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d6_file"
  * )
  */
@@ -45,7 +45,7 @@ class File extends DrupalSqlBase {
       // If two or more files have the same timestamp, they'll end up in a
       // non-deterministic order. Ordering by fid (or any other unique field)
       // will prevent this.
-      ->orderBy('fid');
+      ->orderBy('f.fid');
   }
 
   /**

@@ -7,7 +7,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
 /**
  * Drupal 7 shortcut links source from database.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d7_shortcut",
  *   source_provider = "shortcut"
  * )
@@ -22,7 +22,7 @@ class Shortcut extends DrupalSqlBase {
       ->fields('ml', array('mlid', 'menu_name', 'link_path', 'link_title', 'weight'))
       ->condition('hidden', '0')
       ->condition('menu_name', 'shortcut-set-%', 'LIKE')
-      ->orderBy('mlid');
+      ->orderBy('ml.mlid');
   }
 
   /**

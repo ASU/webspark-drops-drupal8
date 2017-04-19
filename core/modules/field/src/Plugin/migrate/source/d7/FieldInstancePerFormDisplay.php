@@ -8,7 +8,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
 /**
  * The field instance per form display source class.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d7_field_instance_per_form_display"
  * )
  */
@@ -28,8 +28,7 @@ class FieldInstancePerFormDisplay extends DrupalSqlBase {
       ->fields('fc', array(
         'type',
         'module',
-      ))
-      ->condition('fci.entity_type', 'node');
+      ));
     $query->join('field_config', 'fc', 'fci.field_id = fc.id');
     return $query;
   }

@@ -9,7 +9,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
 /**
  * Drupal 7 comment type source from database.
  *
- * @MigrateDrupalSource(
+ * @MigrateSource(
  *   id = "d7_comment_type",
  *   source_provider = "comment"
  * )
@@ -30,7 +30,7 @@ class CommentType extends DrupalSqlBase {
     return $this->select('field_config_instance', 'fci')
       ->distinct()
       ->fields('fci', array('bundle'))
-      ->condition('entity_type', 'comment');
+      ->condition('fci.entity_type', 'comment');
   }
 
   /**

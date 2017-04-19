@@ -4,7 +4,7 @@
  *
  */
 
-(function ($, _, Backbone, Drupal) {
+(function ($, _, Backbone, Drupal, drupalSettings) {
 
   'use strict';
 
@@ -24,23 +24,23 @@
       // We need to add/update a new BlockModel somewhere. Inform the App that
       // this has occurred.
       if (settings['panels_ipe']['updated_block']) {
-        var data = settings['panels_ipe']['updated_block'];
+        var blockData = settings['panels_ipe']['updated_block'];
         // Remove the setting.
         delete settings['panels_ipe']['updated_block'];
         // Create a BlockModel.
-        var block = new Drupal.panels_ipe.BlockModel(data);
+        var block = new Drupal.panels_ipe.BlockModel(blockData);
         // Trigger the event.
-        Drupal.panels_ipe.app.trigger('addBlockPlugin', block, data.region);
+        Drupal.panels_ipe.app.trigger('addBlockPlugin', block, blockData.region);
       }
 
       // We need to add/update our Layout Inform the App that this has occurred.
       if (settings['panels_ipe']['updated_layout']) {
-        var data = settings['panels_ipe']['updated_layout'];
+        var layoutData = settings['panels_ipe']['updated_layout'];
         // Remove the setting.
         delete settings['panels_ipe']['updated_layout'];
         // Create a LayoutModel.
-        data = Drupal.panels_ipe.LayoutModel.prototype.parse(data);
-        var layout = new Drupal.panels_ipe.LayoutModel(data);
+        layoutData = Drupal.panels_ipe.LayoutModel.prototype.parse(layoutData);
+        var layout = new Drupal.panels_ipe.LayoutModel(layoutData);
         // Trigger the event.
         Drupal.panels_ipe.app.trigger('changeLayout', layout);
       }
@@ -48,9 +48,9 @@
       // Toggle the preview - We need to do this with drupalSettings as the
       // animation won't work if triggered by a form submit. It must occur after
       // the form is rendered.
-      if (context.className == 'panels-ipe-block-plugin-form flip-container'
+      if (context.className === 'panels-ipe-block-plugin-form flip-container'
         && settings['panels_ipe']['toggle_preview']) {
-        var $form = $('.ipe-block-plugin-form');
+        var $form = $('.ipe-block-form');
 
         // Flip the form.
         $form.toggleClass('flipped');
@@ -60,8 +60,8 @@
 
         // As images can load late on new content, recalculate the flipper
         // height on image load.
-        $form.find('img').each(function() {
-          $(this).load(function() {
+        $form.find('img').each(function () {
+          $(this).load(function () {
             Drupal.panels_ipe.setFlipperHeight($form);
           });
         });
@@ -72,8 +72,16 @@
       // A new Block Content entity has been created. Trigger an app-level event
       // to switch tabs and open the placement form.
       if (settings['panels_ipe']['new_block_content']) {
-        Drupal.panels_ipe.app.trigger('addContentBlock', settings['panels_ipe']['new_block_content']);
+        var newBlockData = settings['panels_ipe']['new_block_content'];
         delete settings['panels_ipe']['new_block_content'];
+        Drupal.panels_ipe.app.trigger('addContentBlock', newBlockData);
+      }
+
+      // A Block Content entity has been edited.
+      if (settings['panels_ipe']['edit_block_content']) {
+        var editBlockData = settings['panels_ipe']['edit_block_content'];
+        delete settings['panels_ipe']['edit_block_content'];
+        Drupal.panels_ipe.app.trigger('editContentBlockDone', editBlockData);
       }
     }
   };
@@ -90,19 +98,19 @@
    *   The contextual drupalSettings.
    */
   Drupal.panels_ipe.init = function (settings) {
+    settings = settings || drupalSettings;
     // Set up our initial tabs.
     var tab_collection = new Drupal.panels_ipe.TabCollection();
 
-    if (settings.panels_ipe.layout.changeable) {
-      tab_collection.add({title: 'Change Layout', id: 'change_layout'});
+    if (settings.panels_ipe.user_permission.change_layout) {
+      tab_collection.add(createTabModel(Drupal.t('Change Layout'), 'change_layout'));
     }
-    tab_collection.add({title: 'Create Content', id: 'create_content'});
-    tab_collection.add({title: 'Place Content', id: 'place_content'});
+    tab_collection.add(createTabModel(Drupal.t('Manage Content'), 'manage_content'));
 
     // The edit/save/cancel tabs are special, and are tracked by our app.
-    var edit_tab = new Drupal.panels_ipe.TabModel({title: 'Edit', id: 'edit'});
-    var save_tab = new Drupal.panels_ipe.TabModel({title: 'Save', id: 'save'});
-    var cancel_tab = new Drupal.panels_ipe.TabModel({title: 'Cancel', id: 'cancel'});
+    var edit_tab = createTabModel(Drupal.t('Edit'), 'edit');
+    var save_tab = createTabModel(Drupal.t('Save'), 'save');
+    var cancel_tab = createTabModel(Drupal.t('Cancel'), 'cancel');
     tab_collection.add(edit_tab);
     tab_collection.add(save_tab);
     tab_collection.add(cancel_tab);
@@ -118,11 +126,10 @@
 
     // Set up our initial tab views.
     var tab_views = {};
-    if (settings.panels_ipe.layout.changeable) {
+    if (settings.panels_ipe.user_permission.change_layout) {
       tab_views.change_layout = new Drupal.panels_ipe.LayoutPicker();
     }
-    tab_views.create_content = new Drupal.panels_ipe.BlockContentPicker();
-    tab_views.place_content = new Drupal.panels_ipe.BlockPicker();
+    tab_views.manage_content = new Drupal.panels_ipe.BlockPicker();
 
     // Create an AppView instance.
     Drupal.panels_ipe.app_view = new Drupal.panels_ipe.AppView({
@@ -171,14 +178,22 @@
     // initializing and ready to render.
     Backbone.trigger('PanelsIPEInitialized');
 
-    // Render our AppView.
-    $('body').append(Drupal.panels_ipe.app_view.render().$el);
+    // Render our AppView, without rendering the layout.
+    $('body').append(Drupal.panels_ipe.app_view.render(false).$el);
+
+    // Set our initial URL root.
+    Drupal.panels_ipe.setUrlRoot(settings);
+
+    function createTabModel(title, id) {
+      return new Drupal.panels_ipe.TabModel({title: title, id: id});
+    }
   };
 
   Drupal.panels_ipe.setFlipperHeight = function ($form) {
     // The preview could be larger than the form.
     // Manually set the height to be sure that things fit.
-    var $new_side, $current_side;
+    var $new_side;
+    var $current_side;
     if ($form.hasClass('flipped')) {
       $new_side = $form.find('.flipper > .back');
       $current_side = $form.find('.flipper > .front');
@@ -188,14 +203,11 @@
       $current_side = $form.find('.flipper > .back');
     }
 
-    // If the new side is larger than the current side, change the height.
-    if ($new_side.outerHeight() > $current_side.outerHeight()) {
-      $current_side.animate({height: $new_side.outerHeight() + 10}, 600);
-    }
+    $current_side.animate({height: $new_side.outerHeight() + 10}, 600);
   };
 
   /**
-   * Returns the urlRoot for all callbacks
+   * Returns the urlRoot for all callbacks.
    *
    * @param {Object} settings
    *   The contextual drupalSettings.
@@ -204,8 +216,18 @@
    *   A base path for most other URL callbacks in this App.
    */
   Drupal.panels_ipe.urlRoot = function (settings) {
-    var panels_display = settings.panels_ipe.panels_display;
-    return settings.path.baseUrl + 'admin/panels_ipe/variant/' + panels_display.storage_type + '/' + panels_display.storage_id;
+    return settings.panels_ipe.url_root;
   };
 
-}(jQuery, _, Backbone, Drupal));
+  /**
+   * Sets the urlRoot for all callbacks.
+   *
+   * @param {Object} settings
+   *   The contextual drupalSettings.
+   */
+  Drupal.panels_ipe.setUrlRoot = function (settings) {
+    var panels_display = settings.panels_ipe.panels_display;
+    settings.panels_ipe.url_root = settings.path.baseUrl + 'admin/panels_ipe/variant/' + panels_display.storage_type + '/' + panels_display.storage_id;
+  };
+
+}(jQuery, _, Backbone, Drupal, drupalSettings));
