@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\ctools\Plugin\DisplayVariant\BlockDisplayVariant.
- */
-
 namespace Drupal\ctools\Plugin\DisplayVariant;
 
 use Drupal\Component\Uuid\UuidInterface;
@@ -203,6 +198,29 @@ abstract class BlockDisplayVariant extends VariantBase implements ContextAwareVa
    */
   protected function uuidGenerator() {
     return $this->uuidGenerator;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __sleep() {
+    $vars = parent::__sleep();
+
+    // Gathered contexts objects should not be serialized.
+    if (($key = array_search('contexts', $vars)) !== FALSE) {
+      unset($vars[$key]);
+    }
+
+    // The block plugin collection should also not be serialized, ensure that
+    // configuration is synced back.
+    if (($key = array_search('blockPluginCollection', $vars)) !== FALSE) {
+      if ($this->blockPluginCollection) {
+        $this->configuration['blocks'] = $this->blockPluginCollection->getConfiguration();
+      }
+      unset($vars[$key]);
+    }
+
+    return $vars;
   }
 
 }

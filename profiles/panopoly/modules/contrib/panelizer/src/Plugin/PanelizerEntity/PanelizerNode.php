@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\panelizer\Plugin\PanelizerEntity;
- */
-
 namespace Drupal\panelizer\Plugin\PanelizerEntity;
 
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
@@ -23,12 +18,8 @@ class PanelizerNode extends PanelizerEntityBase {
    * {@inheritdoc}
    */
   public function getDefaultDisplay(EntityViewDisplayInterface $display, $bundle, $view_mode) {
-    $panels_display = parent::getDefaultDisplay($display, $bundle, $view_mode);
-
-    // @todo: Add an accessor in Panels for this!
-    $configuration = $panels_display->getConfiguration();
-    $configuration['page_title'] = '[node:title]';
-    $panels_display->setConfiguration($configuration);
+    $panels_display = parent::getDefaultDisplay($display, $bundle, $view_mode)
+      ->setPageTitle('[node:title]');
 
     // Remove the 'title' block because it's covered already.
     foreach ($panels_display->getRegionAssignments() as $region => $blocks) {
@@ -59,10 +50,10 @@ class PanelizerNode extends PanelizerEntityBase {
     parent::alterBuild($build, $entity, $panels_display, $view_mode);
 
     if ($entity->id()) {
-      $build['#contextual_links']['node'] = array(
-        'route_parameters' =>array('node' => $entity->id()),
-        'metadata' => array('changed' => $entity->getChangedTime()),
-      );
+      $build['#contextual_links']['node'] = [
+        'route_parameters' => ['node' => $entity->id()],
+        'metadata' => ['changed' => $entity->getChangedTime()],
+      ];
     }
   }
 

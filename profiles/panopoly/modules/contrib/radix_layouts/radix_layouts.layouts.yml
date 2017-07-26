@@ -277,17 +277,17 @@ radix_pond:
     header:
       label: Header
     column1:
-      label: Row 1: First Column
+      label: "Row 1: First Column"
     column2:
-      label: Row 1: Second Column
+      label: "Row 1: Second Column"
     column3:
-      label: Row 1: Third Column
+      label: "Row 1: Third Column"
     secondarycolumn1:
-      label: Row 2: First Column
+      label: "Row 2: First Column"
     secondarycolumn2:
-      label: Row 2: Second Column
+      label: "Row 2: Second Column"
     secondarycolumn3:
-      label: Row 2: Third Column
+      label: "Row 2: Third Column"
     footer:
       label: Footer
 radix_rolph:
@@ -319,15 +319,15 @@ radix_sanderson_flipped:
   library: radix_layouts/radix_layouts
   regions:
     column1:
-      label: Row 1: First Column
+      label: "Row 1: First Column"
     column2:
-      label: Row 1: Second Column
+      label: "Row 1: Second Column"
     column3:
-      label: Row 1: Third Column
+      label: "Row 1: Third Column"
     secondarycolumn1:
-      label: Row 2: First Column
+      label: "Row 2: First Column"
     secondarycolumn2:
-      label: Row 2: Second Column
+      label: "Row 2: Second Column"
 radix_sanderson:
   label: Sanderson
   category: Radix
@@ -337,15 +337,15 @@ radix_sanderson:
   library: radix_layouts/radix_layouts
   regions:
     column1:
-      label: Row 1: First Column
+      label: "Row 1: First Column"
     column2:
-      label: Row 1: Second Column
+      label: "Row 1: Second Column"
     secondarycolumn1:
-      label: Row 2: First Column
+      label: "Row 2: First Column"
     secondarycolumn2:
-      label: Row 2: Second Column
+      label: "Row 2: Second Column"
     secondarycolumn3:
-      label: Row 2: Third Column
+      label: "Row 2: Third Column"
 radix_selby_flipped:
   label: Selby Flipped
   category: Radix

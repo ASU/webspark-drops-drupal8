@@ -61,6 +61,10 @@ function ctools_views_config_schema_info_alter(&$definitions) {
       ],
     ],
   ];
+  $definitions['views_block']['mapping']['exposed'] = [
+    'type' => 'sequence',
+    'label' => 'Exposed filter values',
+  ];
   $definitions['views_block']['mapping']['sort'] = [
     'type' => 'sequence',
     'label' => 'Sort settings',
@@ -92,6 +96,10 @@ function ctools_views_config_schema_info_alter(&$definitions) {
   $definitions['views.display.block']['mapping']['allow']['mapping']['sort_fields'] = [
     'type' => 'string',
     'label' => 'Sort fields',
+  ];
+  $definitions['views.display.block']['mapping']['allow']['mapping']['configure_filters'] = [
+    'type' => 'string',
+    'label' => 'Configure filters',
   ];
   $definitions['views.display.block']['mapping']['allow']['mapping']['disable_filters'] = [
     'type' => 'string',

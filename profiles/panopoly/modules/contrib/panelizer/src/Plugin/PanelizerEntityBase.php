@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\panelizer\Plugin\PanelizerEntityBase.
- */
-
 namespace Drupal\panelizer\Plugin;
 
 use Drupal\Component\Plugin\PluginBase;
@@ -12,6 +7,7 @@ use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Panels\PanelsDisplayManager;
 use Drupal\panels\Plugin\DisplayVariant\PanelsDisplayVariant;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -20,6 +16,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Base class for Panelizer entity plugins.
  */
 abstract class PanelizerEntityBase extends PluginBase implements PanelizerEntityInterface, ContainerFactoryPluginInterface {
+  use StringTranslationTrait;
 
   /**
    * @var \Drupal\Panels\PanelsDisplayManager
@@ -68,9 +65,11 @@ abstract class PanelizerEntityBase extends PluginBase implements PanelizerEntity
   public function getDefaultDisplay(EntityViewDisplayInterface $display, $bundle, $view_mode) {
     $panels_display = $this->panelsManager->createDisplay();
 
-    $panels_display->setLayout('onecol');
+    $panels_display->setConfiguration(['label' => $this->t('Default')] + $panels_display->getConfiguration());
+    $panels_display->setLayout('layout_onecol');
     // @todo: For now we always use the IPE, but we should support not using the ipe.
     $panels_display->setBuilder('ipe');
+    $panels_display->setPattern('panelizer');
 
     // Add all the visible fields to the Panel.
     $entity_type_id = $this->getPluginId();
@@ -97,7 +96,7 @@ abstract class PanelizerEntityBase extends PluginBase implements PanelizerEntity
           'context_mapping' => [
             'entity' => '@panelizer.entity_context:entity',
           ],
-          'region' => 'middle',
+          'region' => 'content',
           'weight' => $weight,
         ]);
       }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\panelizer\PanelizerEntityViewBuilder.
- */
-
 namespace Drupal\panelizer;
 
 use Drupal\Core\Cache\CacheableMetadata;
@@ -20,6 +15,7 @@ use Drupal\Core\Field\FieldItemInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Plugin\Context\Context;
 use Drupal\Core\Plugin\Context\ContextDefinition;
+use Drupal\ctools\Context\AutomaticContext;
 use Drupal\panelizer\Plugin\PanelizerEntityManagerInterface;
 use Drupal\Panels\PanelsDisplayManagerInterface;
 use Drupal\panels\Plugin\DisplayVariant\PanelsDisplayVariant;
@@ -215,7 +211,7 @@ class PanelizerEntityViewBuilder implements EntityViewBuilderInterface, EntityHa
    *   The context.
    */
   protected function getEntityContext(EntityInterface $entity) {
-    return new Context(new ContextDefinition('entity:' . $this->entityTypeId, NULL, TRUE), $entity);
+    return new AutomaticContext(new ContextDefinition('entity:' . $this->entityTypeId, NULL, TRUE), $entity);
   }
 
   /*
@@ -265,6 +261,9 @@ class PanelizerEntityViewBuilder implements EntityViewBuilderInterface, EntityHa
    * {@inheritdoc}
    */
   public function view(EntityInterface $entity, $view_mode = 'full', $langcode = NULL) {
+    // Trigger hook_panelizer_pre_view_builder_alter().
+    $this->moduleHandler->alter('panelizer_pre_view_builder', $view_mode, $entity, $langcode);
+
     $displays = $this->collectRenderDisplays([$entity], $view_mode);
     $display = $displays[$entity->bundle()];
 
@@ -279,7 +278,7 @@ class PanelizerEntityViewBuilder implements EntityViewBuilderInterface, EntityHa
   /**
    * {@inheritdoc}
    */
-  public function viewMultiple(array $entities = array(), $view_mode = 'full', $langcode = NULL) {
+  public function viewMultiple(array $entities = [], $view_mode = 'full', $langcode = NULL) {
     $displays = $this->collectRenderDisplays($entities, $view_mode);
 
     $panelized_entities = [];
@@ -315,14 +314,14 @@ class PanelizerEntityViewBuilder implements EntityViewBuilderInterface, EntityHa
   /**
    * {@inheritdoc}
    */
-  public function viewField(FieldItemListInterface $items, $display_options = array()) {
+  public function viewField(FieldItemListInterface $items, $display_options = []) {
     return $this->getFallbackViewBuilder()->viewfield($items, $display_options);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function viewFieldItem(FieldItemInterface $item, $display = array()) {
+  public function viewFieldItem(FieldItemInterface $item, $display = []) {
     return $this->getFallbackViewBuilder()->viewFieldItem($item, $display);
   }
 
@@ -352,7 +351,16 @@ class PanelizerEntityViewBuilder implements EntityViewBuilderInterface, EntityHa
 
     foreach ($entities as $id => $entity) {
       $panels_display = $this->panelizer->getPanelsDisplay($entity, $view_mode, $displays[$entity->bundle()]);
+      $settings = $this->panelizer->getPanelizerSettings($entity->getEntityTypeId(), $entity->bundle(), $view_mode, $displays[$entity->bundle()]);
+      $panels_display->setContexts($this->panelizer->getDisplayStaticContexts($settings['default'], $entity->getEntityTypeId(), $entity->bundle(), $view_mode, $displays[$entity->bundle()]));
       $build[$id] = $this->buildPanelized($entity, $panels_display, $view_mode, $langcode);
+
+      // Allow modules to modify the render array.
+      $alter_types = [
+        "{$this->entityTypeId}_view",
+        'entity_view',
+      ];
+      $this->moduleHandler->alter($alter_types, $build[$id], $entity, $displays[$entity->bundle()]);
     }
 
     return $build;
@@ -375,10 +383,10 @@ class PanelizerEntityViewBuilder implements EntityViewBuilderInterface, EntityHa
 
     $build = [
       '#theme' => [
-        'panelizer_view_mode',
-        'panelizer_view_mode__' . $this->entityTypeId,
-        'panelizer_view_mode__' . $this->entityTypeId . '__' . $entity->bundle(),
         'panelizer_view_mode__' . $this->entityTypeId . '__' . $entity->id(),
+        'panelizer_view_mode__' . $this->entityTypeId . '__' . $entity->bundle(),
+        'panelizer_view_mode__' . $this->entityTypeId,
+        'panelizer_view_mode',
       ],
       '#panelizer_plugin' => $this->getPanelizerPlugin(),
       '#panels_display' => $panels_display,
@@ -393,8 +401,8 @@ class PanelizerEntityViewBuilder implements EntityViewBuilderInterface, EntityHa
     }
 
     // @todo: I'm sure more is necessary to get the cache contexts right...
-    CacheableMetadata::createFromObject($entity)
-      ->applyTo($build);
+    $entity_metadata = CacheableMetadata::createFromObject($entity);
+    CacheableMetadata::createFromObject($panels_display)->merge($entity_metadata)->applyTo($build);
 
     $this->getPanelizerPlugin()->alterBuild($build, $entity, $panels_display, $view_mode);
 

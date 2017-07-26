@@ -5,23 +5,24 @@ core = 8.x
 
 ; Panels and Chaos Tools Magic
 
-projects[ctools][version] = 3.0-alpha25
+projects[ctools][version] = 3.0
 projects[ctools][subdir] = contrib
-projects[ctools][patch][2672110] = https://www.drupal.org/files/issues/entityfieldderiver-2672110-2.patch
+projects[ctools][patch][2657060] = https://www.drupal.org/files/issues/ctools-exposed-filter-block-config-2657060-56.patch
 
-projects[panels][version] = 3.0-beta5
+projects[panels][version] = 4.1
 projects[panels][subdir] = contrib
+projects[panels][patch][2878650] = https://www.drupal.org/files/issues/panels-ipe-layout-picker-styling.patch
+projects[panels][patch][2886230] = https://www.drupal.org/files/issues/panels-hook-blocks-alter-context-2886230-2.patch
+projects[panels][patch][2849219] = https://www.drupal.org/files/issues/panels-hook-layouts-alter-2849219-17.patch
+projects[panels][patch][2824508] = https://www.drupal.org/files/issues/panels-ipe-search-2824508-8.patch
 
-projects[page_manager][version] = 1.0-alpha23
+projects[page_manager][version] = 4.0-beta2
 projects[page_manager][subdir] = contrib
-
-projects[layout_plugin][version] = 1.0-alpha22
-projects[layout_plugin][subdir] = contrib
 
 ;projects[panels_breadcrumbs][version] = 2.2
 ;projects[panels_breadcrumbs][subdir] = contrib
 
-projects[panelizer][version] = 3.0-alpha2
+projects[panelizer][version] = 4.0
 projects[panelizer][subdir] = contrib
 
 ;projects[fape][version] = 1.2
