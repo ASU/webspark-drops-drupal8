@@ -1,0 +1,11 @@
+language: node_js
+node_js:
+  - "6.3.1"
+
+before_script:
+  - npm install -g gulp
+  - npm install gulp
+  - npm install node-sass
+  - npm install --save-dev kss
+
+script: gulp
