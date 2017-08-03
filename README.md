@@ -16,7 +16,7 @@ CONTENTS OF THIS FILE
 INTRODUCTION
 ------------
 
- Welcome to Webspark 8! We are currently in a pre-development stage, but are
+ Welcome to Webspark 8! We are currently in the pre-development stage, but are
  uploading our initial commit, based off of Panopoly 8.x-2.0-alpha4 (and on).
 
   * For a full description of the motivation behind Webspark, visit
@@ -73,7 +73,6 @@ TROUBLESHOOTING & FAQ
 MAINTAINERS
 -----------
 
- UTO DEV Applications & Design - https://uto.asu.edu/
-
- Current maintainers:
-  * Michael Gilardi (mgilardi) - https://www.drupal.org/u/mgilardi
+ UTO DEV Applications & Design
+ webconsulting@asu.edu
+ https://webspark.asu.edu
