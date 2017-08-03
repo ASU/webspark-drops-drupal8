@@ -34,3 +34,6 @@ xmlrpc.php
 /profiles
 /scripts
 /themes
+
+# Ignore Jared's idea folder
+.idea/
